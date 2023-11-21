@@ -1,0 +1,90 @@
+---
+title: "latexr_papier"
+subtitle: "Démonstration en \\LaTeX"
+lang: fr
+author: "D\\textsuperscript{r} Philippe \\textsc{Michel}"
+format: pdf
+include-in-header:
+   text: |
+    \usepackage{siunitx}
+    \AddToHook{env/tabular/before}{\addfontfeatures{Numbers=Monospaced}}
+    \AddToHook{env/longtable/before}{\addfontfeatures{Numbers=Monospaced}}
+    \usepackage{alphabeta}
+    \usepackage{marginnote}
+    \usepackage[math=arsenal+kpsans]{arsenal}
+    \renewcommand*{\marginfont}{\footnotesize}
+df-print : kable
+documentclass: scrartcl
+classoption: [fontsize=10pt]
+papersize: a4
+pdf-engine: lualatex
+keep-tex: true
+number-sections: true
+toc: true
+lof: true
+lot: true
+echo: false
+warning: false
+message: false
+cache: true
+---
+
+
+# Travaux préparatoires
+
+```{r}
+#| label: setup
+
+library(tidyverse)
+library(gtsummary)
+library(kableExtra)
+library(epiDisplay)
+library(baseph)
+library(plotly)
+
+pat <- patients
+```
+
+À peine fus−je réveillé le lendemain que j'allais visiter les dehors du château, et célébrer mon avènement à la solitude. Le perron faisait face au nord−ouest. Quand on était assis sur le diazome de ce perron, on avait devant soi la Cour Verte, et au delà de cette cour, un potager étendu entre deux futaies : l'une, à droite (le quinconce par lequel nous étions arrivés), s'appelait le petit Mail ; l'autre, à gauche, le grand Mail. Celle−ci était un bois de chênes, de hêtres, de sycomores, d'ormes et de châtaigniers. Madame de Sévigné vantait de son temps ces vieux ombrages ; depuis cette époque, cent quarante années avaient été ajoutées à leur beauté.
+
+La moyenne des âges est de `r round(mean(pat$age, na.rm = TRUE),1)` ans.
+
+
+# Description
+
+## Tableau principal
+
+```{r}
+#| label: tbl-tab1
+#| tbl-cap:  Description de la population
+
+
+pat |>
+  tbl_summary(
+    by = escarre,
+    missing = "no",
+    statistic = list(all_continuous() ~ "{mean} ± {sd}")
+  ) |>
+  modify_header(label ~ "") |>
+  modify_spanning_header(c("stat_1", "stat_2") ~ "**Escarres**") |>
+  bold_labels() |>
+  add_p(test = list(all_continuous() ~ "t.test")) |>
+  bold_p() |>
+  as_kable_extra(longtable = FALSE, booktabs = TRUE) |>
+  kable_styling(latex_options = c("HOLD_position", "scale_down", "repeat_header"))
+```
+
+```{r}
+#| label: fig-age_esc
+#| fig-cap: Prévalences des escarres selon l'âge
+
+
+zz <- pat |>
+  drop_na(admission) |>
+  ggplot() +
+  aes(x = age, y = igs2, col = admission) +
+  geom_point(size = 2) +
+  theme_light()
+# ggplotly(zz)
+zz
+```
